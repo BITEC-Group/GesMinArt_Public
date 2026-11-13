@@ -3,7 +3,30 @@
 (() => {
   const BASE = window.DEMO_BASE || '';
   let data = null;
-  const charge = fetch.bind(window)(BASE + '/demo-data.json').then(r => r.json()).then(d => { data = d; });
+  // Écritures SIMULÉES : enregistrées uniquement dans le navigateur du visiteur (localStorage), rejouées sur l'instantané à chaque chargement.
+  const CLE = 'gesminart_demo_ops'; let ops = [], ecriture = true;
+  try { ops = JSON.parse(localStorage.getItem(CLE) || '[]'); } catch {}
+  const lignes = d => Array.isArray(d) ? d : (d && Array.isArray(d.rows) ? d.rows : null);
+  const cles = base => Object.keys(data.snap).filter(k => k.split('?')[0] === base);
+  const applique = op => {
+    const s = data.snap, m = /^(.*?)(?:\/([^/]+))?$/.exec(op.p), segs = op.p.split('/').filter(Boolean);
+    const dernierId = segs.length > 1 && /^\d+$|^[0-9a-f-]{8,}$/i.test(segs[segs.length - 1]);
+    const actionSurId = segs.length > 2 && /^\d+$|^[0-9a-f-]{8,}$/i.test(segs[segs.length - 2]); // ex. /infractions/12/notifier
+    if (op.m === 'POST' && !actionSurId) {
+      const row = { id: 'demo-' + op.t, ...op.b, cree_le: new Date(op.t).toISOString(), simule: true };
+      for (const k of cles(op.p)) { const l = lignes(s[k]); if (l) { l.unshift(row); if (!Array.isArray(s[k]) && typeof s[k].total === 'number') s[k].total++; } }
+      return row;
+    }
+    const baseP = '/' + segs.slice(0, actionSurId ? -2 : -1).join('/'), id = actionSurId ? segs[segs.length - 2] : segs[segs.length - 1];
+    const cibleId = actionSurId || dernierId;
+    if (!cibleId) return { ...op.b };
+    if (op.m === 'DELETE') { for (const k of cles(baseP)) { const l = lignes(s[k]); if (l) { const i = l.findIndex(r => String(r.id) === id); if (i >= 0) { l.splice(i, 1); if (!Array.isArray(s[k]) && typeof s[k].total === 'number') s[k].total--; } } } delete s[baseP + '/' + id]; return {}; }
+    const maj = actionSurId ? { ...op.b, derniere_action: segs[segs.length - 1] } : op.b;
+    for (const k of cles(baseP)) { const l = lignes(s[k]); const r = l && l.find(x => String(x.id) === id); if (r) Object.assign(r, maj, { simule: true }); }
+    if (s[baseP + '/' + id] && typeof s[baseP + '/' + id] === 'object') Object.assign(s[baseP + '/' + id], maj);
+    return { id, ...maj };
+  };
+  const charge = fetch.bind(window)(BASE + '/demo-data.json').then(r => r.json()).then(d => { data = d; ecriture = false; for (const o of ops) { try { applique(o); } catch {} } ecriture = true; });
   const reel = window.fetch.bind(window);
   const json = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
   const loginDuToken = h => { const m = /Bearer demo\.(.+)$/.exec(h || ''); return m ? m[1] : null; };
@@ -19,7 +42,13 @@
       const c = data.comptes[b.login]; if (!c || b.pin !== '1234') return json({ erreur: 'Identifiant ou PIN incorrect (démo : PIN 1234).' }, 401);
       return json({ ...c.login, token: 'demo.' + b.login });
     }
-    if (meth !== 'GET') return json({ erreur: 'Démonstration en lecture seule : cette action n\'est pas enregistrée. Utilisez l\'application complète pour les essais d\'écriture.', demo: true }, 403);
+    if (meth !== 'GET') {
+      let b = {}; try { b = JSON.parse(init.body || '{}'); } catch {}
+      if (/^\/(logout|login)/.test(p)) return json({ ok: true });
+      const op = { m: meth, p, b, t: Date.now() }; const rep = applique(op);
+      if (ecriture) { ops.push(op); try { localStorage.setItem(CLE, JSON.stringify(ops.slice(-300))); } catch {} }
+      return json({ ...rep, ok: true, simule: true });
+    }
     if (p === '/me') { const c = data.comptes[loginDuToken(hdr)] || data.comptes.admin; return json(c.me); }
     if (p === '/sante') return json({ ok: true, base: 'démonstration statique', version: 'demo' });
     const s = data.snap, cles = [p + url.search, p];
@@ -37,7 +66,7 @@
   addEventListener('DOMContentLoaded', () => {
     const b = document.createElement('div');
     b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#0a2a5e;color:#fff;font:12px system-ui,sans-serif;padding:5px 10px;text-align:center;opacity:.95';
-    b.textContent = 'Démonstration publique — données fictives, lecture seule (PIN de test : 1234 ; comptes : admin, prov.lualaba, agent1, perc1, cami1, fin1, ceec1…)';
-    b.onclick = () => b.remove(); document.body.appendChild(b);
+    b.textContent = 'Démonstration publique — données fictives ; vos modifications sont simulées et gardées seulement dans ce navigateur (PIN : 1234 ; comptes : admin, prov.lualaba, agent1, perc1, cami1, fin1, ceec1…) — cliquez pour réinitialiser';
+    b.onclick = () => { try { localStorage.removeItem(CLE); } catch {} location.reload(); }; document.body.appendChild(b);
   });
 })();
