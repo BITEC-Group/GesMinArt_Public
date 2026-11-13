@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+<head><script>window.DEMO_BASE="/GesMinArt_Public";</script><script src="/GesMinArt_Public/demo-shim.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GesMinArt — Plateforme nationale des mines artisanales</title>
+<meta name="theme-color" content="#0b1e3f">
+<link rel="icon" href="/GesMinArt_Public/img/rdc-map.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/GesMinArt_Public/vendor/leaflet.css">
+<link rel="stylesheet" href="/GesMinArt_Public/css/app.css">
+</head>
+<body>
+<div id="login">
+  <form class="login-box" id="loginForm" autocomplete="off">
+    <div class="ruban" style="margin:-28px -28px 20px;border-radius:18px 18px 0 0"></div>
+    <div class="brand"><div id="loginLogo"></div><div><h1>GesMinArt</h1><div class="sub">République Démocratique du Congo<br>Identification · SIG · Recettes — mines artisanales</div></div></div>
+    <div class="f"><label for="lg">Identifiant</label><input id="lg" value="admin" required></div>
+    <div class="f"><label for="pn">Code PIN</label><input id="pn" type="password" value="1234" required inputmode="numeric"></div>
+    <button class="btn pri" style="width:100%;justify-content:center;padding:11px">Se connecter</button>
+    <div id="lerr" class="alert bad" style="display:none;margin:12px 0 0"></div>
+    <p class="muted small" style="margin:14px 0 4px">Comptes de démonstration (PIN <b>1234</b>) :</p>
+    <div class="demo-users" id="demoUsers"></div>
+    <p class="muted small" style="margin:10px 0 0">Données de démonstration : personnes fictives ; géographie et sites issus de sources publiques (OpenStreetMap, geoBoundaries).</p>
+  </form>
+</div>
+<div id="shell">
+  <aside class="nav" id="nav"></aside>
+  <main><div class="top"><span class="crumb" id="crumb"></span><span class="sp"></span><span class="status" id="livestatus" title="Flux temps réel des institutions"></span><span class="status" id="netstatus"></span><button class="btn sm" id="themeBtn" title="Thème clair / sombre">◐</button><a class="btn sm" href="/GesMinArt_Public/m/" target="_blank" title="Ouvrir l'application mobile / POS">Mobile / POS</a></div>
+  <div class="ruban"></div><div id="view"></div></main>
+</div>
+<div id="toast"></div>
+<script src="/GesMinArt_Public/vendor/leaflet.js"></script>
+<script src="/GesMinArt_Public/vendor/qrcode.js"></script>
+<script type="module" src="/GesMinArt_Public/js/app.js"></script>
+</body>
+</html>
