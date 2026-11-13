@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head><script>window.DEMO_BASE="";</script><script src="/demo-shim.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GesMinArt — Télécharger</title>
+<style>
+  :root { --bleu: #007FFF; --marine: #0a2a5e; --jaune: #F7D618; --rouge: #CE1126; --fond: #f3f6fc; --carte: #fff; --texte: #14233f; --bord: #dde5f3; }
+  @media (prefers-color-scheme: dark) { :root { --fond: #0b1220; --carte: #131c2e; --texte: #e6edf8; --bord: #26334d; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--fond); color: var(--texte); }
+  .tri { height: 4px; background: linear-gradient(90deg, var(--bleu) 0 36%, var(--jaune) 36% 43%, var(--rouge) 43% 64%, var(--jaune) 64% 71%, var(--bleu) 71%); }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { margin: 8px 0 4px; font-size: 28px; } h1 span { color: var(--bleu); }
+  p.lead { margin: 0 0 20px; opacity: .85; }
+  .reco { border: 2px solid var(--bleu); border-radius: 14px; padding: 16px; background: var(--carte); margin-bottom: 20px; }
+  .grille { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .carte { background: var(--carte); border: 1px solid var(--bord); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+  .carte h2 { margin: 0; font-size: 17px; } .carte small { opacity: .75; }
+  a.btn { display: inline-block; margin-top: 8px; padding: 10px 14px; border-radius: 10px; background: var(--bleu); color: #fff; text-decoration: none; font-weight: 600; text-align: center; }
+  a.btn.sec { background: transparent; color: var(--bleu); border: 1px solid var(--bleu); }
+  .note { font-size: 13px; opacity: .8; margin-top: 20px; line-height: 1.5; }
+  code { background: var(--bord); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="tri"></div>
+<main>
+  <h1><span>GesMinArt</span> — accès par appareil</h1>
+  <p class="lead">Plateforme nationale de gestion des activités minières artisanales. Choisissez la version de votre appareil. <b id="ver"></b></p>
+  <div id="reco" class="reco" hidden></div>
+  <div class="grille" id="liste"></div>
+  <p class="note">
+    Les applications se connectent au serveur GesMinArt : indiquez son adresse sur l'écran de connexion (rubrique « Serveur »).
+    Compte de démonstration : identifiant <code>admin</code>. Les binaires de test ne sont pas signés : Windows et macOS peuvent afficher un avertissement de sécurité.
+    Liens publics : aucun compte GitHub n'est nécessaire.
+    iPhone / iPad : build pour simulateur uniquement (installation sur appareil réel : TestFlight, non fourni).
+  </p>
+</main>
+<script>
+  const TAG = 'v0.3.8';
+  // Dépôt public de téléchargement (aucun code source) : liens ouverts à toute personne.
+  const BASE = 'https://github.com/BITEC-Group/GesMinArt_Public/releases/download/' + TAG + '/';
+  const APPAREILS = [
+    { id: 'android', nom: 'Mobile Android', fichier: 'GesMinArt-Android.apk', aide: 'Téléchargez le fichier .apk, puis autorisez l\'installation depuis cette source.' },
+    { id: 'windows', nom: 'Ordinateur Windows', fichier: 'GesMinArt-Windows.zip', aide: 'Décompressez, puis lancez gesminart.exe.' },
+    { id: 'mac', nom: 'Ordinateur macOS', fichier: 'GesMinArt-macOS.zip', aide: 'Décompressez, puis ouvrez gesminart.app (clic droit, Ouvrir).' },
+    { id: 'linux', nom: 'Ordinateur Linux', fichier: 'GesMinArt-Linux.tar.gz', aide: 'Décompressez l\'archive, puis lancez l\'exécutable gesminart.' },
+    { id: 'ios', nom: 'iPhone / iPad (simulateur iOS)', fichier: 'GesMinArt-iOS-simulateur.zip', aide: 'Pour le simulateur iOS d\'un Mac avec Xcode. Une installation sur un appareil réel exige une signature Apple (TestFlight) : non disponible.' },
+    { id: 'web', nom: 'Navigateur (web)', fichier: 'GesMinArt-web.zip', aide: 'Archive du site à publier sur un serveur web ; ouvrez ensuite son adresse.' },
+  ];
+  const ua = navigator.userAgent || '';
+  const detecte = /Android/i.test(ua) ? 'android' : /iPhone|iPad|iPod/i.test(ua) ? 'ios' : /Windows/i.test(ua) ? 'windows' : /Mac/i.test(ua) ? 'mac' : /Linux|X11/i.test(ua) ? 'linux' : 'web';
+  document.getElementById('ver').textContent = 'Version ' + TAG.slice(1) + '.';
+  const lien = a => BASE.replace(TAG, a.tag || TAG) + a.fichier;
+  const html = a => `<div class="carte"><h2>${a.nom}</h2><small>${a.aide}</small><a class="btn" href="${lien(a)}" download>Télécharger</a><small><code>${a.fichier}</code></small></div>`;
+  document.getElementById('liste').innerHTML = APPAREILS.map(html).join('');
+  const reco = document.getElementById('reco'), a = APPAREILS.find(x => x.id === detecte);
+  reco.hidden = false;
+  reco.innerHTML = a
+    ? `<b>Recommandé pour votre appareil : ${a.nom}</b><br><small>${a.aide}</small><br><a class="btn" href="${lien(a)}" download>Télécharger ${a.fichier}</a>`
+    : `<b>iPhone / iPad détecté</b><br><small>L'installation directe sur iPhone n'est pas encore disponible (signature Apple requise). Utilisez la version web depuis Safari, ou le simulateur iOS sur un Mac.</small>`;
+</script>
+</body>
+</html>

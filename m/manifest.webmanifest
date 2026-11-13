@@ -1,0 +1,13 @@
+{
+  "name": "GesMinArt Mobile",
+  "short_name": "GesMinArt",
+  "description": "Identification, contrôle de site et collecte des recettes — mines artisanales RDC (hors ligne)",
+  "start_url": "/m/",
+  "scope": "/m/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1e3f",
+  "theme_color": "#0b1e3f",
+  "lang": "fr",
+  "icons": [{ "src": "/img/rdc-map.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
